@@ -1,2 +1,32 @@
-# Proxmox-Hybrid-Virtualization
-An enterprise-grade virtualization lab built on Proxmox VE demonstrating VLAN-aware virtual switching, virtualized perimeter routing/firewalling, and automated provisioning of Windows Server (Active Directory) and Linux (Ubuntu/AlmaLinux) workloads.
+                      [ Upstream Lab / WAN Uplink ]
+                            10.255.0.1/24 (GW)
+                                    |
+                            (Physical NIC: eno1)
+                                    |
+                    +---------------+---------------+
+                    |   Proxmox VE Host (pve-node01) |
+                    |   Mgmt IP: 10.10.10.10/24      |
+                    +---------------+---------------+
+                                    |
+             +----------------------+----------------------+
+             |                                             |
+     [ vmbr0 (WAN Bridge) ]                [ vmbr1 (VLAN-Aware Trunk Bridge) ]
+       10.255.0.0/24                         802.1Q Tagged: VLAN 10, 20, 30, 99
+             |                                             |
+             +--------------------+------------------------+
+                                  |
+                  +---------------+---------------+
+                  |   Virtual Router (fw-router01) |
+                  |   WAN: 10.255.0.2/24 (eth0)    |
+                  |   LAN Trunk: eth1 (802.1Q)     |
+                  +---+-------+-------+-------+---+
+                      |       |       |       |
+       +--------------+       |       |       +--------------+
+       | VLAN 10              | VLAN 20       | VLAN 30      | VLAN 99
+ (10.10.10.1/24)        (10.10.20.1/24) (10.10.30.1/24) (10.10.99.1/24)
+       |                      |               |              |
++------+------+        +------+------+ +------+------+ +-----+-------+
+| Hypervisor  |        |  win-dc01   | |  lnx-app01  | |  lnx-mon01  |
+| Management  |        | Win Server  | | Ubuntu 24.04| | Admin/Mon   |
+| 10.10.10.10 |        | 10.10.20.10 | | 10.10.30.10 | | 10.10.99.10 |
++-------------+        +-------------+ +-------------+ +-------------+
